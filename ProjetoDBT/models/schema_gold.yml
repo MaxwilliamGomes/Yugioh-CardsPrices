@@ -1,0 +1,237 @@
+version: 2
+
+models:
+  # =========================================================================
+  # CAMADA GOLD - DIMENSÕES
+  # =========================================================================
+  
+  - name: gold_dim_cards
+    description: |
+      Dimensão consolidada de cards com atributos de jogo e preços de mercado.
+      
+      🎯 Problema de Negócio: "Preciso de uma visão única da carta que combine 
+      seus atributos de jogo (ATK, DEF, Imagem) com o preço atual de mercado 
+      para decidir o que comprar."
+      
+      Nível de Granularidade: 1 linha por card
+      Proprietário: Data Analytics
+    
+    columns:
+      - name: card_id
+        description: "ID único do card (PK)"
+        tests:
+          - unique
+          - not_null
+      
+      - name: card_name
+        description: "Nome do card (normalizado)"
+        tests:
+          - not_null
+      
+      - name: archetype
+        description: "Arquétipo/estratégia do card"
+      
+      - name: card_type
+        description: "Tipo: Monster, Spell, Trap (normalizado)"
+        tests:
+          - not_null
+      
+      - name: monster_attribute
+        description: "Atributo do monstro (DARK, LIGHT, etc ou UNKNOWN)"
+      
+      - name: monster_race
+        description: "Raça/tipo do monstro"
+      
+      - name: monster_level
+        description: "Nível do monstro (1-13, null se inválido)"
+      
+      - name: attack_points
+        description: "Pontos de ataque (null se inválido/negativo)"
+      
+      - name: defense_points
+        description: "Pontos de defesa (null se inválido/negativo)"
+      
+      - name: image_url
+        description: "URL da imagem do card"
+      
+      - name: min_market_price
+        description: "Menor preço encontrado no mercado (USD)"
+      
+      - name: avg_market_price
+        description: "Preço médio do card nos marketplaces (USD)"
+      
+      - name: max_market_price
+        description: "Maior preço encontrado no mercado (USD)"
+      
+      - name: total_printings
+        description: "Quantidade de sets diferentes em que a carta foi lançada"
+      
+      - name: available_rarities
+        description: "Lista de raridades disponíveis (separadas por vírgula)"
+      
+      - name: price_bracket
+        description: "Categorização de valor: Budget (Under $2), Mid-Range, High-End Investment"
+      
+      - name: updated_at
+        description: "Timestamp da última atualização"
+
+  - name: gold_dim_archetype
+    description: |
+      Dimensão de arquétipos com métricas agregadas de custo e disponibilidade.
+      
+      🎯 Problema de Negócio: "Qual arquétipo é mais barato para montar hoje? 
+      Qual o investimento mínimo e máximo para cada estratégia?"
+      
+      Nível de Granularidade: 1 linha por arquétipo único
+      Proprietário: Data Analytics
+    
+    columns:
+      - name: archetype_id
+        description: "ID único sequencial do arquétipo (PK)"
+        tests:
+          - unique
+          - not_null
+      
+      - name: archetype
+        description: "Nome do arquétipo"
+        tests:
+          - unique
+          - not_null
+      
+      - name: unique_cards_count
+        description: "Quantidade de cards únicos neste arquétipo"
+        tests:
+          - not_null
+      
+      - name: min_deck_core_cost
+        description: "Custo mínimo para montar o deck (soma dos menores preços de cada card)"
+        tests:
+          - not_null
+      
+      - name: avg_deck_core_cost
+        description: "Custo médio para montar o deck (soma dos preços médios de cada card)"
+        tests:
+          - not_null
+      
+      - name: most_expensive_card_price
+        description: "Preço da carta mais cara do arquétipo"
+        tests:
+          - not_null
+      
+      - name: created_at
+        description: "Timestamp de criação"
+
+  # =========================================================================
+  # CAMADA GOLD - FATOS (FACT TABLES)
+  # =========================================================================
+  
+  - name: gold_market_arbitrage
+    description: |
+      Fato de oportunidades de arbitragem por marketplace e card.
+      
+      🎯 Problema de Negócio: "Existe algum marketplace onde a carta está 
+      muito mais barata? Onde eu economizo mais dinheiro na compra individual?"
+      
+      Nível de Granularidade: 1 linha por (card, marketplace)
+      Proprietário: Data Analytics
+      Atualização: Diária
+    
+    columns:
+      - name: card_id
+        description: "ID do card (FK para gold_dim_cards)"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('gold_dim_cards')
+              field: card_id
+      
+      - name: archetype_id
+        description: "ID do arquétipo (FK para gold_dim_archetype)"
+        tests:
+          - relationships:
+              to: ref('gold_dim_archetype')
+              field: archetype_id
+      
+      - name: marketplace
+        description: "Nome do marketplace (TCGPlayer, Cardmarket, etc)"
+        tests:
+          - not_null
+      
+      - name: current_price
+        description: "Preço atual neste marketplace (USD)"
+        tests:
+          - not_null
+      
+      - name: min_price_global
+        description: "Menor preço encontrado para este card em qualquer marketplace"
+        tests:
+          - not_null
+      
+      - name: overpay_amount
+        description: "Diferença de preço (valor que você paga a mais neste marketplace)"
+        tests:
+          - not_null
+      
+      - name: market_spread_pct
+        description: "Volatilidade de preços (diferença entre max e min em percentual)"
+        tests:
+          - not_null
+      
+      - name: analyzed_at
+        description: "Timestamp da análise"
+
+  - name: gold_rarity_premium_analysis
+    description: |
+      Fato de análise de ágio por raridade de card.
+      
+      🎯 Problema de Negócio: "Vale a pena pagar pela raridade? 
+      Quanto eu pago a mais por uma carta 'Secret Rare' em comparação 
+      à sua versão mais simples?"
+      
+      Nível de Granularidade: 1 linha por (card, set_rarity) onde há ágio
+      Proprietário: Data Analytics
+      Atualização: Diária
+    
+    columns:
+      - name: card_id
+        description: "ID do card (FK para gold_dim_cards)"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('gold_dim_cards')
+              field: card_id
+      
+      - name: archetype_id
+        description: "ID do arquétipo (FK para gold_dim_archetype)"
+        tests:
+          - relationships:
+              to: ref('gold_dim_archetype')
+              field: archetype_id
+      
+      - name: set_rarity
+        description: "Raridade no set (Common, Ultra Rare, Secret Rare, etc)"
+        tests:
+          - not_null
+      
+      - name: rarity_price
+        description: "Preço médio para esta raridade (USD)"
+        tests:
+          - not_null
+      
+      - name: base_price
+        description: "Preço base (a raridade mais barata deste card)"
+        tests:
+          - not_null
+      
+      - name: luxury_multiplier
+        description: "Multiplicador de preço (quanto custa em proporção à base)"
+        tests:
+          - not_null
+      
+      - name: rarity_premium_usd
+        description: "Ágio em dólares (quanto você paga a mais pela raridade)"
+        tests:
+          - not_null
+      
+      - name: analyzed_at
+        description: "Timestamp da análise"

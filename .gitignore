@@ -1,0 +1,17 @@
+# dbt
+target/
+dbt_modules/
+logs/
+.dbt/
+.user.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

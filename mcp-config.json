@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "postgres-dw": {
+      "command": "python",
+      "args": [
+        "mcp_postgres_server.py"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

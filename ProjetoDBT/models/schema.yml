@@ -1,0 +1,61 @@
+version: 2
+
+sources:
+  - name: yugioh
+    description: Dados brutos do Yu-Gi-Oh DW
+    database: yugioh
+    schema: public
+    tables:
+      - name: cards
+        description: Tabela bruta de cards do Yu-Gi-Oh
+        columns:
+          - name: id
+            description: ID único do card
+          - name: name
+            description: Nome do card
+          - name: type
+            description: Tipo do card (Monster, Spell, Trap)
+          - name: atk
+            description: Pontos de ataque
+          - name: def
+            description: Pontos de defesa
+          - name: level
+            description: Nível do card
+          - name: race
+            description: Raça/Tipo do monstro
+          - name: attribute
+            description: Atributo do card
+          - name: archetype
+            description: Arquétipo do card
+          - name: image_url
+            description: URL da imagem do card
+      
+      - name: card_prices
+        description: Tabela bruta de preços dos cards
+        columns:
+          - name: id
+            description: ID único do registro
+          - name: card_id
+            description: ID do card relacionado
+          - name: marketplace
+            description: Marketplace onde o preço foi obtido
+          - name: price
+            description: Valor do preço
+          - name: currency
+            description: Moeda do preço
+      
+      - name: card_sets
+        description: Tabela bruta de sets dos cards
+        columns:
+          - name: id
+            description: ID único do registro
+          - name: card_id
+            description: ID do card relacionado
+          - name: set_name
+            description: Nome do set
+          - name: set_code
+            description: Código do set
+          - name: set_rarity
+            description: Raridade no set
+          - name: set_price
+            description: Preço do set

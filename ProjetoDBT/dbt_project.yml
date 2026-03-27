@@ -1,0 +1,38 @@
+
+# Name your project! Project names should be lowercase and use underscores as spaces.
+name: 'yugioh_dw'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'yugioh_dw'
+
+# These configurations specify where dbt should look for different types of files.
+# You don't need to change these! Just know they exist.
+model-paths: ["models"]
+analysis-paths: ["analysis"]
+test-paths: ["tests"]
+seed-paths: ["data"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"  # directory which will store compiled SQL files
+clean-targets:         # directories to be removed by `dbt clean`
+  - "target"
+  - "dbt_modules"
+
+# Configuring models
+models:
+  yugioh_dw:
+    staging:
+      +materialized: table
+      +schema: bronze
+      +tags: ['staging']
+    marts:
+      +materialized: table
+      +schema: silver
+      +tags: ['silver', 'mart']
+    gold:
+      +materialized: table
+      +schema: gold
+      +tags: ['gold', 'analytics']
