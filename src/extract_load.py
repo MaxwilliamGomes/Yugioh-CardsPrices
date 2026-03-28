@@ -2,7 +2,11 @@ import requests
 import pandas as pd
 import time
 import psycopg2
+import os
 from psycopg2.extras import execute_values
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # 🔧 CONFIG
 BASE_URL = "https://db.ygoprodeck.com/api/v7/cardinfo.php"
@@ -25,11 +29,11 @@ MAX_RETRIES = 3
 
 # 🗄️ DATABASE CONFIG
 DB_CONFIG = {
-    "host": "localhost",
-    "port": "5433",
-    "database": "yugioh",
-    "user": "postgres",
-    "password": "postgres"
+    "host":     os.getenv("DB_HOST"),
+    "port":     os.getenv("DB_PORT"),
+    "database": os.getenv("DB_NAME"),
+    "user":     os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD"),
 }
 
 # 📦 STORAGE

@@ -3,7 +3,7 @@
     "postgres-dw": {
       "command": "python",
       "args": [
-        "mcp_postgres_server.py"
+        "src/mcp_postgres_server.py"
       ],
       "cwd": "${workspaceFolder}",
       "env": {

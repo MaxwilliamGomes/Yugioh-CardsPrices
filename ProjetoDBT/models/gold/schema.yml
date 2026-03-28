@@ -142,16 +142,18 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('gold_dim_cards')
-              field: card_id
-      
+              arguments:
+                to: ref('gold_dim_cards')
+                field: card_id
+
       - name: archetype_id
         description: "ID do arquétipo (FK para gold_dim_archetype)"
         tests:
           - relationships:
-              to: ref('gold_dim_archetype')
-              field: archetype_id
-      
+              arguments:
+                to: ref('gold_dim_archetype')
+                field: archetype_id
+
       - name: marketplace
         description: "Nome do marketplace (TCGPlayer, Cardmarket, etc)"
         tests:
@@ -198,16 +200,18 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('gold_dim_cards')
-              field: card_id
-      
+              arguments:
+                to: ref('gold_dim_cards')
+                field: card_id
+
       - name: archetype_id
         description: "ID do arquétipo (FK para gold_dim_archetype)"
         tests:
           - relationships:
-              to: ref('gold_dim_archetype')
-              field: archetype_id
-      
+              arguments:
+                to: ref('gold_dim_archetype')
+                field: archetype_id
+
       - name: set_rarity
         description: "Raridade no set (Common, Ultra Rare, Secret Rare, etc)"
         tests:

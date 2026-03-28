@@ -1,0 +1,178 @@
+version: 2
+
+models:
+  # =========================================================================
+  # CAMADA SILVER - MARTS
+  # =========================================================================
+
+  - name: silver_cards
+    description: |
+      Camada Silver de cards com limpeza e validação de dados.
+
+      🎯 Problema de Negócio: "Preciso de dados de cards confiáveis,
+      sem valores inválidos de ATK/DEF/Level e com atributos padronizados."
+
+      Nível de Granularidade: 1 linha por card
+      Proprietário: Data Engineering
+
+    columns:
+      - name: card_id
+        description: "ID único do card (PK)"
+        tests:
+          - unique
+          - not_null
+
+      - name: card_name
+        description: "Nome do card (trimado)"
+        tests:
+          - not_null
+
+      - name: card_type
+        description: "Tipo do card (Monster, Spell, Trap — trimado)"
+        tests:
+          - not_null
+
+      - name: attack_points
+        description: "Pontos de ataque validados (null se negativo ou inválido)"
+
+      - name: defense_points
+        description: "Pontos de defesa validados (null se negativo ou inválido)"
+
+      - name: monster_level
+        description: "Nível do monstro validado entre 1 e 13 (null se inválido)"
+
+      - name: monster_race
+        description: "Raça/tipo do monstro (trimada)"
+
+      - name: monster_attribute
+        description: "Atributo do monstro padronizado (DARK, LIGHT, etc — UNKNOWN se nulo)"
+
+      - name: archetype
+        description: "Arquétipo do card (trimado)"
+
+      - name: image_url
+        description: "URL da imagem do card"
+
+      - name: loaded_at
+        description: "Timestamp de carregamento na camada Silver"
+        tests:
+          - not_null
+
+  # -------------------------------------------------------------------------
+
+  - name: silver_card_prices
+    description: |
+      Camada Silver de preços com validação e conversão para USD.
+
+      🎯 Problema de Negócio: "Preciso comparar preços entre marketplaces
+      numa moeda única (USD), descartando valores inválidos."
+
+      Nível de Granularidade: 1 linha por (card, marketplace)
+      Proprietário: Data Engineering
+      Taxa de conversão EUR→USD: 1.10 (hardcoded)
+
+    columns:
+      - name: price_id
+        description: "ID único do registro de preço (PK)"
+        tests:
+          - unique
+          - not_null
+
+      - name: card_id
+        description: "ID do card relacionado (FK)"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_cards')
+                field: card_id
+
+      - name: marketplace
+        description: "Marketplace de origem (cardmarket, tcgplayer, ebay, amazon)"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["cardmarket", "tcgplayer", "ebay", "amazon"]
+
+      - name: price_amount
+        description: "Preço original validado na moeda de origem (null se inválido ou <= 0)"
+
+      - name: price_usd
+        description: "Preço convertido para USD (EUR * 1.10)"
+
+      - name: currency_normalized
+        description: "Moeda normalizada: EUR, USD ou OTHER"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["EUR", "USD", "OTHER"]
+
+      - name: price_quality_flag
+        description: "Flag de qualidade: VALID ou INVALID"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["VALID", "INVALID"]
+
+      - name: loaded_at
+        description: "Timestamp de carregamento na camada Silver"
+        tests:
+          - not_null
+
+  # -------------------------------------------------------------------------
+
+  - name: silver_card_sets
+    description: |
+      Camada Silver de sets com padronização de raridade e validação de preço.
+
+      🎯 Problema de Negócio: "Preciso saber em quais sets cada carta foi
+      lançada, com raridade padronizada e preços confiáveis."
+
+      Nível de Granularidade: 1 linha por (card, set)
+      Proprietário: Data Engineering
+
+    columns:
+      - name: set_id
+        description: "ID único do registro de set (PK)"
+        tests:
+          - unique
+          - not_null
+
+      - name: card_id
+        description: "ID do card relacionado (FK)"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_cards')
+                field: card_id
+
+      - name: set_name
+        description: "Nome do set (trimado)"
+
+      - name: set_code
+        description: "Código do set (trimado)"
+
+      - name: set_rarity
+        description: "Raridade padronizada (UNKNOWN se nula ou vazia)"
+        tests:
+          - not_null
+
+      - name: set_price_amount
+        description: "Preço do set validado (null se <= 0 ou inválido)"
+
+      - name: data_quality_flag
+        description: "Flag de qualidade: VALID, INCOMPLETE ou INVALID"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["VALID", "INCOMPLETE", "INVALID"]
+
+      - name: loaded_at
+        description: "Timestamp de carregamento na camada Silver"
+        tests:
+          - not_null

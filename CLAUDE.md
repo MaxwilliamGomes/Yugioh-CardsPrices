@@ -48,7 +48,7 @@ dbt docs serve
 
 ### MCP Server (optional — exposes DW to VS Code Copilot)
 ```bash
-python mcp_postgres_server.py
+python src/mcp_postgres_server.py
 ```
 
 ## Architecture
